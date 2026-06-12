@@ -18,6 +18,27 @@ lexical retrieval and optional response generation through local Ollama.
 The detailed project documentation is available in
 [`docs/README.md`](docs/README.md).
 
+## Project Status
+
+Demo 7 is the first published milestone:
+
+- local lexical RAG with explainable ranking;
+- optional grounded generation with Ollama and `qwen3:4b`;
+- explicit grounded, general, retrieval, and fallback answer modes;
+- a versioned 10-question retrieval evaluation;
+- structured output ready for future tools, skills, and MCP adapters.
+
+Run the milestone checks:
+
+```bash
+python -m unittest discover -v
+python -m app.evaluate
+python -m app.demo
+```
+
+The frozen baseline is available at
+[`demo-7-local-rag`](https://github.com/jsc-cfb-ia/local-ai-architecture-playground/tree/demo-7-local-rag).
+
 The current retrieval score favors terms in the active question, then adds
 smaller boosts for recent context, source filenames, topic metadata, and query
 coverage. This is intentionally simple enough to inspect before introducing

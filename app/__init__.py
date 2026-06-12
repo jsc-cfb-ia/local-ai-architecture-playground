@@ -1,0 +1,1 @@
+"""Local architecture assistant package."""

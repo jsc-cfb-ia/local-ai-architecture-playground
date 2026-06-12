@@ -1,0 +1,62 @@
+[
+  {
+    "id": "graphql-definition",
+    "question": "What is GraphQL?",
+    "expected_sources": ["graphql.txt"],
+    "expected_terms": ["graphql"]
+  },
+  {
+    "id": "appsync-operations",
+    "question": "Which GraphQL operations does AppSync support?",
+    "expected_sources": ["graphql.txt"],
+    "expected_terms": ["appsync", "graphql"]
+  },
+  {
+    "id": "step-functions-definition",
+    "question": "What is AWS Step Functions?",
+    "expected_sources": ["step-functions.txt"],
+    "expected_terms": ["step", "functions"]
+  },
+  {
+    "id": "event-driven-services",
+    "question": "Which AWS services are common in event-driven architectures?",
+    "expected_sources": ["aws.txt"],
+    "expected_terms": ["event", "driven"]
+  },
+  {
+    "id": "sqs-buffering",
+    "question": "Why use SQS to buffer order events?",
+    "expected_sources": ["event-driven-order-architecture.txt"],
+    "expected_terms": ["sqs", "buffer"]
+  },
+  {
+    "id": "consumer-idempotency",
+    "question": "How should consumers implement idempotency?",
+    "expected_sources": ["event-driven-order-architecture.txt"],
+    "expected_terms": ["consumers", "idempotency"]
+  },
+  {
+    "id": "dead-letter-queue",
+    "question": "What is the role of a dead-letter queue?",
+    "expected_sources": ["event-driven-order-architecture.txt"],
+    "expected_terms": ["dead", "letter", "queue"]
+  },
+  {
+    "id": "workflow-retries",
+    "question": "How should workflow retries handle transient failures?",
+    "expected_sources": ["event-driven-order-architecture.txt"],
+    "expected_terms": ["retries", "transient", "failures"]
+  },
+  {
+    "id": "order-state",
+    "question": "How does DynamoDB store order state?",
+    "expected_sources": ["event-driven-order-architecture.txt"],
+    "expected_terms": ["dynamodb", "order", "state"]
+  },
+  {
+    "id": "observability-identifiers",
+    "question": "Which identifiers support end-to-end observability?",
+    "expected_sources": ["event-driven-order-architecture.txt"],
+    "expected_terms": ["correlation", "identifier"]
+  }
+]

@@ -1,0 +1,109 @@
+Event-Driven Order Processing Architecture
+
+This reference architecture processes customer orders asynchronously while
+keeping the API responsive and isolating failures between components.
+
+Request and acceptance flow
+
+A client submits an order through an AWS AppSync GraphQL mutation. The mutation
+validates the required input and creates an order record in DynamoDB with a
+status such as PENDING. The API returns an order identifier immediately instead
+of waiting for payment, inventory, and fulfillment to complete.
+
+After the order is accepted, the application publishes an OrderCreated event
+to Amazon EventBridge. The event includes an event identifier, order identifier,
+event type, timestamp, schema version, and correlation identifier. Consumers
+should depend on this event contract rather than on the internal structure of
+the API or database.
+
+Routing and buffering
+
+EventBridge routes OrderCreated events to interested targets. An Amazon SQS
+queue can buffer work before processing. This queue decouples event producers
+from consumers, absorbs traffic spikes, and allows consumers to process at
+their own rate.
+
+The SQS visibility timeout must be longer than the expected processing time.
+Messages that fail repeatedly should move to a dead-letter queue after a
+configured maximum receive count. The dead-letter queue preserves failed
+messages for investigation and controlled replay instead of retrying forever.
+
+Workflow orchestration
+
+A Lambda function can consume the SQS message and start an AWS Step Functions
+state machine. The state machine makes the business process explicit. Example
+states include ValidateOrder, ReserveInventory, AuthorizePayment,
+ConfirmOrder, and PublishOrderCompleted.
+
+Step Functions is useful when the workflow needs sequencing, branching,
+service integrations, retries, timeouts, or compensating actions. Simple,
+independent event reactions may remain separate Lambda consumers and do not
+need orchestration.
+
+Failure handling
+
+Transient failures should use bounded retries with exponential backoff and
+jitter. Permanent business failures, such as unavailable inventory, should not
+be retried as if they were temporary infrastructure failures. The workflow
+should record a clear failure status and may execute compensation, such as
+releasing inventory after payment authorization fails.
+
+Consumers implement idempotency by using the event identifier as an idempotency
+key and recording it in DynamoDB with a conditional write before applying the
+business effect. A repeated key indicates that the work already completed and
+must not run again. This is required because EventBridge, SQS, Lambda, and
+workflow retries can result in duplicate delivery or repeated execution.
+Conditional writes also prevent two concurrent attempts from applying the same
+business effect twice.
+
+State and data ownership
+
+DynamoDB stores the current order state and selected workflow results. Status
+transitions should be explicit, for example PENDING, PROCESSING, CONFIRMED, and
+FAILED. Components should update only the data they own. Events communicate
+facts that occurred; they should not expose unnecessary database details.
+
+The order identifier is the business identifier. The event identifier uniquely
+identifies one event occurrence. The correlation identifier connects API logs,
+events, queue messages, Lambda invocations, and Step Functions executions for
+one end-to-end request.
+
+GraphQL status updates
+
+Clients can query the order by identifier to obtain its latest status. AWS
+AppSync subscriptions can notify connected clients when the order status
+changes. The asynchronous backend should not require the original mutation
+connection to remain open.
+
+Observability
+
+Structured logs should include the order identifier, event identifier,
+correlation identifier, component name, workflow execution identifier, and
+outcome. Useful metrics include accepted orders, queue depth, message age,
+workflow failures, retry counts, dead-letter queue messages, and end-to-end
+processing duration.
+
+Alarms should focus on symptoms that require action, such as sustained queue
+growth, old messages, repeated workflow failures, or messages arriving in the
+dead-letter queue. A dashboard should show the path from API acceptance through
+event publication, queue processing, orchestration, and final order state.
+
+Security and operations
+
+Every component should receive only the permissions it needs. The API can write
+orders and publish events; the queue consumer can read and delete queue
+messages; the workflow role can invoke only its required integrations.
+Sensitive customer data should not be copied into events unless consumers need
+it. Encryption, retention, replay procedures, and schema compatibility should
+be documented.
+
+Architecture trade-offs
+
+This design improves resilience and scalability but introduces eventual
+consistency. A successful mutation means that the order was accepted, not that
+the entire business process finished. Teams must design status transitions,
+idempotency, replay, monitoring, and operational ownership deliberately.
+
+Use synchronous processing when the caller requires an immediate final result
+and the operation is short and reliable. Use the event-driven workflow when
+work is long-running, bursty, failure-prone, or requires independent consumers.

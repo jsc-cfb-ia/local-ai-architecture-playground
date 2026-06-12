@@ -1,0 +1,2 @@
+AWS Step Functions is a serverless workflow orchestration service.
+It helps coordinate services such as Lambda, SNS, SQS, EventBridge, and DynamoDB using state machines.

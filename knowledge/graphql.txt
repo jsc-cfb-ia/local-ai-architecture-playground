@@ -1,0 +1,2 @@
+GraphQL is an API query language that allows clients to request exactly the data they need.
+In AWS, GraphQL APIs can be implemented with AWS AppSync using queries, mutations, and subscriptions.

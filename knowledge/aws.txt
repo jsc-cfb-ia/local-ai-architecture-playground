@@ -1,0 +1,2 @@
+AWS is a cloud platform that provides services for compute, storage, databases, integration, security, analytics, and artificial intelligence.
+Common services for event-driven architectures include Lambda, EventBridge, SNS, SQS, DynamoDB, and Step Functions.

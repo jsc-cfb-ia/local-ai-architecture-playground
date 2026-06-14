@@ -14,8 +14,10 @@ class RecordingModel:
         self.responses = list(responses or [])
         self.system_prompt = ""
         self.user_prompt = ""
+        self.call_count = 0
 
     def generate(self, system_prompt: str, user_prompt: str) -> str:
+        self.call_count += 1
         self.system_prompt = system_prompt
         self.user_prompt = user_prompt
         return self.responses.pop(0) if self.responses else self.response
@@ -107,6 +109,20 @@ class ArchitectureAssistantTests(unittest.TestCase):
             "retrieved local chunks were insufficient",
             response.warning,
         )
+
+    def test_partial_local_match_skips_grounded_model_call(self) -> None:
+        model = RecordingModel(
+            "AWS Bash is not an official AWS product."
+        )
+        assistant = ArchitectureAssistant(model=model)
+
+        response = assistant.answer("que es aws bash")
+
+        self.assertEqual(response.answer_mode, "general")
+        self.assertEqual(response.sources, ())
+        self.assertEqual(model.call_count, 1)
+        self.assertNotIn("Local knowledge:", model.user_prompt)
+        self.assertIn("matched only part", response.warning)
 
 
 if __name__ == "__main__":

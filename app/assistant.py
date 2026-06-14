@@ -1,7 +1,12 @@
 from dataclasses import dataclass
 
 from app.models import LanguageModel, ModelError
-from app.retriever import SearchResult, search, search_best_match
+from app.retriever import (
+    SearchResult,
+    meaningful_tokens,
+    search,
+    search_best_match,
+)
 
 SYSTEM_PROMPT = """You are a local architecture engineering assistant.
 Answer using only the supplied local knowledge.
@@ -50,10 +55,12 @@ class ArchitectureAssistant:
         model: LanguageModel | None = None,
         retrieval_limit: int = 2,
         allow_general_knowledge: bool = True,
+        minimum_grounded_coverage: float = 0.6,
     ) -> None:
         self.model = model
         self.retrieval_limit = retrieval_limit
         self.allow_general_knowledge = allow_general_knowledge
+        self.minimum_grounded_coverage = minimum_grounded_coverage
 
     def answer(self, question: str, context: str = "") -> AssistantResponse:
         results = search(
@@ -76,6 +83,21 @@ class ArchitectureAssistant:
                 sources=(),
                 generated_by_model=False,
                 answer_mode="no_match",
+            )
+
+        if (
+            self.model is not None
+            and self.allow_general_knowledge
+            and self._query_coverage(question, results)
+            < self.minimum_grounded_coverage
+        ):
+            return self._answer_from_general_knowledge(
+                question=question,
+                context=context,
+                warning=(
+                    "Local knowledge matched only part of the question; "
+                    "this answer uses the model's general knowledge."
+                ),
             )
 
         sources = tuple(
@@ -184,6 +206,30 @@ class ArchitectureAssistant:
         )
 
         return any(signal in normalized for signal in signals)
+
+    @staticmethod
+    def _query_coverage(
+        question: str,
+        results: list[SearchResult],
+    ) -> float:
+        query_tokens = set(meaningful_tokens(question))
+
+        if not query_tokens:
+            return 0.0
+
+        covered_tokens = set()
+
+        for result in results:
+            covered_tokens.update(result.matched_terms)
+            covered_tokens.update(
+                query_tokens.intersection(
+                    meaningful_tokens(
+                        f"{result.chunk.source} {result.chunk.topic}"
+                    )
+                )
+            )
+
+        return len(covered_tokens) / len(query_tokens)
 
     @staticmethod
     def _build_grounded_prompt(

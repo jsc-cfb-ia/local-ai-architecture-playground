@@ -122,6 +122,12 @@ El prompt grounded exige la señal `INSUFFICIENT_CONTEXT` cuando falta evidencia
 En ese caso, el asistente descarta las fuentes y realiza una respuesta general
 etiquetada, en vez de presentar una negativa como respuesta fundamentada.
 
+Antes de invocar el prompt grounded, el asistente también calcula la cobertura
+de términos significativos de la pregunta. Si los chunks cubren menos del 60%,
+omite la llamada grounded y responde directamente en modo `general`. Por
+ejemplo, una coincidencia con `AWS` no implica que el conocimiento local pueda
+explicar `AWS Bash`.
+
 ### Fallback lexical
 
 Una caída del runtime local no inutiliza la aplicación. El usuario recibe el

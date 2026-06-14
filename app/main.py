@@ -1,4 +1,5 @@
 import os
+import time
 from pathlib import Path
 
 from app.assistant import ArchitectureAssistant
@@ -141,9 +142,12 @@ def main() -> None:
             print("Goodbye 👋")
             break
 
+        started_at = time.perf_counter()
+        print("\nAssistant: processing...", flush=True)
         answer = get_response(question)
+        elapsed_seconds = time.perf_counter() - started_at
 
-        print(f"\nAssistant:\n{answer}\n")
+        print(f"\nAssistant ({elapsed_seconds:.1f}s):\n{answer}\n")
 
         if should_save_to_memory(question):
             save_memory(question, answer)

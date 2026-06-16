@@ -14,10 +14,8 @@ class RetrievalEvaluationTests(unittest.TestCase):
         results = evaluate_cases(load_cases())
 
         self.assertTrue(all(result.passed for result in results))
-        self.assertIn(
-            "10/10 passed",
-            format_report(results),
-        )
+        self.assertIn("10/10 passed", format_report(results))
+        self.assertIn("lexical", format_report(results))
 
 
 if __name__ == "__main__":

@@ -86,7 +86,8 @@ Cada skill debe definir:
 
 ## Etapa 5: Retrieval híbrido
 
-Agregar embeddings locales sin eliminar el ranking lexical:
+Demo 8 empieza esta etapa agregando embeddings locales sin eliminar el ranking
+lexical:
 
 1. búsqueda lexical para términos exactos como nombres de servicios;
 2. búsqueda vectorial para similitud semántica;

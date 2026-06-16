@@ -3,7 +3,10 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
+from app.embeddings import OllamaEmbeddingModel
+from app.models import ModelError
 from app.retriever import PROJECT_ROOT, meaningful_tokens, search
+from app.semantic_retriever import search_semantic
 
 DEFAULT_DATASET = PROJECT_ROOT / "evaluation" / "questions.json"
 
@@ -53,13 +56,27 @@ def load_cases(dataset_path: Path = DEFAULT_DATASET) -> list[EvaluationCase]:
 
 def evaluate_cases(
     cases: list[EvaluationCase],
+    strategy: str = "lexical",
 ) -> list[EvaluationResult]:
     """Evaluate whether retrieval ranks an expected source first."""
 
     results = []
+    embedding_model = (
+        OllamaEmbeddingModel()
+        if strategy == "semantic"
+        else None
+    )
 
     for case in cases:
-        matches = search(case.question, limit=1)
+        matches = (
+            search_semantic(
+                case.question,
+                embedding_model=embedding_model,
+                limit=1,
+            )
+            if strategy == "semantic"
+            else search(case.question, limit=1)
+        )
         top_match = matches[0] if matches else None
         chunk_terms = (
             set(meaningful_tokens(top_match.chunk.content))
@@ -84,10 +101,13 @@ def evaluate_cases(
     return results
 
 
-def format_report(results: list[EvaluationResult]) -> str:
+def format_report(
+    results: list[EvaluationResult],
+    strategy: str = "lexical",
+) -> str:
     """Format a human-readable retrieval evaluation report."""
 
-    lines = ["=== Retrieval Evaluation ==="]
+    lines = [f"=== Retrieval Evaluation ({strategy}) ==="]
 
     for result in results:
         status = "PASS" if result.passed else "FAIL"
@@ -123,15 +143,36 @@ def build_parser() -> argparse.ArgumentParser:
         default=DEFAULT_DATASET,
         help="Path to a JSON evaluation dataset.",
     )
+    parser.add_argument(
+        "--strategy",
+        choices=("lexical", "semantic", "both"),
+        default="lexical",
+        help="Retrieval strategy to evaluate.",
+    )
     return parser
 
 
 def main() -> None:
     args = build_parser().parse_args()
-    results = evaluate_cases(load_cases(args.dataset))
-    print(format_report(results))
+    cases = load_cases(args.dataset)
+    strategies = (
+        ("lexical", "semantic")
+        if args.strategy == "both"
+        else (args.strategy,)
+    )
+    all_results = []
 
-    if not all(result.passed for result in results):
+    for strategy in strategies:
+        try:
+            results = evaluate_cases(cases, strategy=strategy)
+        except ModelError as error:
+            print(f"Semantic evaluation unavailable: {error}")
+            raise SystemExit(1) from error
+
+        all_results.extend(results)
+        print(format_report(results, strategy=strategy))
+
+    if not all(result.passed for result in all_results):
         raise SystemExit(1)
 
 

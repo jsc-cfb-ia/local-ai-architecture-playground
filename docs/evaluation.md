@@ -26,6 +26,12 @@ Cada caso contiene:
 python -m app.evaluate
 ```
 
+Comparar lexical y semántico:
+
+```bash
+python -m app.evaluate --strategy both
+```
+
 El comando imprime el resultado de cada pregunta y termina con código distinto
 de cero si algún caso falla.
 
@@ -34,6 +40,9 @@ Resultado esperado para Demo 7:
 ```text
 Summary: 10/10 passed (100% top-1 source accuracy)
 ```
+
+Demo 8 agrega `--strategy semantic`, que utiliza embeddings locales de Ollama.
+La primera ejecución puede tardar más porque construye `.cache/embeddings/`.
 
 ## Preguntas cubiertas
 
@@ -52,7 +61,7 @@ La evaluación incluye:
 
 ## Cómo evolucionarla
 
-Demo 8 debe reutilizar estas preguntas para comparar:
+Demo 8 reutiliza estas preguntas para comparar:
 
 1. ranking lexical actual;
 2. búsqueda por embeddings;

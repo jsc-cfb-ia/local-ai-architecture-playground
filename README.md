@@ -114,10 +114,11 @@ python -m unittest discover -v
 Run the versioned 10-question retrieval benchmark:
 
 ```bash
-python -m app.evaluate
+python -m app.evaluate --strategy both
 ```
 
-Demo 7 expects 100% top-1 source accuracy. The dataset is stored in
+Demo 7 expects 100% top-1 source accuracy. Demo 8 compares lexical and
+semantic strategies using the same dataset, stored in
 [`evaluation/questions.json`](evaluation/questions.json).
 
 ## Demo

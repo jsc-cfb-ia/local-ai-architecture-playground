@@ -20,6 +20,7 @@ interfaces:
 - [Ollama y Qwen3 4B](ollama-qwen3.md): instalación, ejecución y diagnóstico.
 - [Guía de demo](demo-guide.md): preparación, guion y plan de contingencia.
 - [Evaluación](evaluation.md): dataset de preguntas y métrica de retrieval.
+- [Semantic Retrieval](semantic-retrieval.md): embeddings locales con Ollama.
 - [Evolución](evolution.md): etapas para convertir el playground en una
   plataforma de herramientas y agentes.
 
